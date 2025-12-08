@@ -20,6 +20,7 @@ import us.leaf3stones.hy2droid.data.KEY_IS_VPN_CONFIG_READY
 import us.leaf3stones.hy2droid.data.KEY_VPN_CONFIG_PATH
 import us.leaf3stones.hy2droid.data.TUN2SOCKS_CONFIG_FILE_NAME
 import us.leaf3stones.hy2droid.data.vpnPrefDataStore
+import us.leaf3stones.hy2droid.proxy.LogManager
 import java.io.File
 import java.util.Scanner
 import kotlin.concurrent.thread
@@ -42,13 +43,16 @@ class Hysteria2VpnService : VpnService() {
 
         if (isStart && netFileDescriptor != null) {
             // do not respond when vpn is already started
+            LogManager.warn("VPN already started, ignoring duplicate start request")
             return START_STICKY
         } else if (!isStart && !isStop) {
             Log.w(TAG, "can't recognize the intent $intent")
+            LogManager.error("Unrecognized intent: $intent")
             return START_NOT_STICKY
         }
 
         if (isStart) {
+            LogManager.log("Starting Hysteria 2 VPN service...")
             startForeground()
             scope.launch {
                 val pref = vpnPrefDataStore.data.first()
@@ -58,6 +62,7 @@ class Hysteria2VpnService : VpnService() {
             }
             return START_STICKY;
         } else {
+            LogManager.log("Stopping Hysteria 2 VPN service...")
             cleanup()
             stopSelf()
             return START_NOT_STICKY
@@ -98,14 +103,31 @@ class Hysteria2VpnService : VpnService() {
     private fun startVpnChecked(isConfigReady: Boolean, configPath: String) {
         if (!isConfigReady || configPath.isBlank()) {
             Log.w(TAG, "---BUG--- vpn config not ready but start is called ---BUG---")
+            LogManager.error("VPN config not ready, cannot start")
             return
         }
         Log.d(TAG, "starting hysteria, config located at $configPath")
+        LogManager.log("Starting Hysteria with config: $configPath")
+        
+        // Log the config content for debugging
+        try {
+            val configContent = File(configPath).readText()
+            LogManager.debug("=== Hysteria Config Start ===")
+            configContent.lines().take(50).forEach { line ->
+                LogManager.debug(line)
+            }
+            LogManager.debug("=== Hysteria Config End ===")
+        } catch (e: Exception) {
+            LogManager.error("Failed to read config: ${e.message}")
+        }
+        
         startHysteriaInternal(configPath)
         val fd = establishSystemVpnTunnel()
         startTun2socks(File(filesDir, TUN2SOCKS_CONFIG_FILE_NAME).absolutePath, fd)
         Log.d(TAG, getTun2socksStats().contentToString())
+        LogManager.log("VPN tunnel established successfully")
 
+        vpnRunning = true
         observers.forEach {
             it.onVpnStarted()
         }
@@ -116,6 +138,7 @@ class Hysteria2VpnService : VpnService() {
         commands[0] = File(applicationInfo.nativeLibraryDir, "libhysteria.so").absolutePath
         commands[1] = "-c"
         commands[2] = hysteriaConfig
+        LogManager.debug("Executing: ${commands.joinToString(" ")}")
         hysteriaProcess = Runtime.getRuntime().exec(commands)
         hysteriaLoggingThread = thread {
             hysteriaProcess!!.errorStream.use {
@@ -123,6 +146,18 @@ class Hysteria2VpnService : VpnService() {
                 while (hysteriaOutput.hasNextLine()) {
                     val nextLog = hysteriaOutput.nextLine()
                     Log.v(HYSTERIA_TAG, nextLog)
+                    // Parse and categorize Hysteria logs
+                    when {
+                        nextLog.contains("ERROR", ignoreCase = true) || 
+                        nextLog.contains("FATAL", ignoreCase = true) -> 
+                            LogManager.error("[Hysteria] $nextLog")
+                        nextLog.contains("WARN", ignoreCase = true) -> 
+                            LogManager.warn("[Hysteria] $nextLog")
+                        nextLog.contains("DEBUG", ignoreCase = true) -> 
+                            LogManager.debug("[Hysteria] $nextLog")
+                        else -> 
+                            LogManager.verbose("[Hysteria] $nextLog")
+                    }
                     if (Thread.interrupted()) {
                         break
                     }
@@ -140,6 +175,8 @@ class Hysteria2VpnService : VpnService() {
 
     private fun cleanup() {
         try {
+            LogManager.log("Cleaning up VPN resources...")
+            vpnRunning = false
             observers.forEach {
                 it.onVpnStopped()
             }
@@ -151,8 +188,9 @@ class Hysteria2VpnService : VpnService() {
             hysteriaProcess = null
             hysteriaLoggingThread?.interrupt()
             hysteriaLoggingThread = null
-        } catch (ignored: Exception) {
-
+            LogManager.log("VPN stopped successfully")
+        } catch (e: Exception) {
+            LogManager.error("Error during cleanup: ${e.message}")
         }
     }
 
@@ -194,5 +232,14 @@ class Hysteria2VpnService : VpnService() {
         private val TAG = Hysteria2VpnService::class.java.simpleName.toString()
         private const val HYSTERIA_TAG = "hysteria"
         private val observers: MutableSet<VpnStatusObserver> = mutableSetOf()
+        
+        @Volatile
+        private var vpnRunning = false
+        
+        /**
+         * Check if VPN is currently running
+         * @return true if VPN service is active, false otherwise
+         */
+        fun isVpnRunning(): Boolean = vpnRunning
     }
 }

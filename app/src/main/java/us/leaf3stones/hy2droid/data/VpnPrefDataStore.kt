@@ -28,7 +28,7 @@ tunnel:
   ipv6: 'fc00::1'
 
 socks5:
-  # Socks5 server port
+  # Socks5 server port (Hysteria SOCKS5)
   port: 1080
   # Socks5 server address (ipv4/ipv6)
   address: 127.0.0.1

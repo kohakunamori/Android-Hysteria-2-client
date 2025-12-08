@@ -32,6 +32,18 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.activities.LogViewerActivity"
+            android:exported="false"
+            android:label="Hysteria 日志"
+            android:theme="@style/Theme.Hy2droid" />
+
+        <activity
+            android:name=".ui.activities.RouteRulesActivity"
+            android:exported="false"
+            android:label="域名路由规则"
+            android:theme="@style/Theme.Hy2droid" />
+
         <service
             android:name=".proxy.Hysteria2VpnService"
             android:exported="true"
@@ -39,6 +51,17 @@
             android:permission="android.permission.BIND_VPN_SERVICE">
             <intent-filter>
                 <action android:name="android.net.VpnService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".tile.Hysteria2VpnTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_launcher"
+            android:label="Hysteria 2"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
         </service>
     </application>
