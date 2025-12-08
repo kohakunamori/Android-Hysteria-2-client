@@ -29,20 +29,11 @@ android {
         }
     }
 
-    signingConfigs {
-        release {
-            storeFile(file("../signing/production.jks"))
-            storePassword("KdDxFEMr9gdmQH5W")
-            keyAlias("signing")
-            keyPassword("KdDxFEMr9gdmQH5W")
-        }
-    }
-
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            // signingConfig removed - will use debug signing for development builds
         }
     }
     compileOptions {
