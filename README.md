@@ -2,9 +2,10 @@
 
 ## 介绍
 
-自用 android hysteria 2 客户端，基于[hysteria 2.4.0](https://github.com/apernet/hysteria/commit/f91efbeded80d5d1f43ba574e707326074fc754e)构建. 支持 64位arm架构，在 android 14上测试可用. [新版本](https://github.com/lry127/Android-Hysteria-2-client?tab=readme-ov-file#%E6%96%B0%E7%89%88%E6%9C%AC)支持更多abi.
+自用 android hysteria 2 客户端，基于[hysteria 2.6.5](https://github.com/apernet/hysteria/releases/tag/app/v2.6.5)构建. 支持 arm64-v8a、armeabi-v7a、x86、x86_64 架构，在 android 14上测试可用.
 
 ## 下载
+- [2.6.5](https://github.com/kohakunamori/Android-Hysteria-2-client/releases/tag/v2.6.5) - 更新至Hysteria核心2.6.5版本
 - [2.4.0](https://github.com/lry127/Android-Hysteria-2-client/releases/tag/v2.4.0r-2)
 
 
@@ -44,8 +45,18 @@
 
 - allow insecure: 允许不安全证书，通常不应开启，否则可能导致中间人攻击
 
-## 新版本
-Github上传的源码使用最新hysteria 2.5.1版本. UI基于Jetpack Compose实现但并不完备，不过基础功能已经实现，若需使用请使用下载[pre-release](https://github.com/lry127/Android-Hysteria-2-client/releases/tag/v2.5.1.2). 详见此[issue](https://github.com/lry127/Android-Hysteria-2-client/issues/2). ![新版截图](./screenshots/s2.png)
+## 更新日志
+
+### v2.6.5 (2025-12-08)
+- ✅ 更新Hysteria核心到2.6.5版本
+- ✅ 修复服务器端内存泄漏问题 (来自Hysteria官方)
+- ✅ 安全修复：TLS证书指纹验证改进 (来自Hysteria官方)
+- ✅ 修复TUN模式UDP包问题 (来自Hysteria官方)
+- ✅ 支持ClientHello分片以绕过部分防火墙SNI过滤 (来自Hysteria官方)
+- ✅ 更新quic-go到v0.54.0 (来自Hysteria官方)
+
+### v2.5.1
+UI基于Jetpack Compose实现但并不完备，不过基础功能已经实现，若需使用请使用下载[pre-release](https://github.com/lry127/Android-Hysteria-2-client/releases/tag/v2.5.1.2). 详见此[issue](https://github.com/lry127/Android-Hysteria-2-client/issues/2). ![新版截图](./screenshots/s2.png)
 
 ## 关于
 
