@@ -15,3 +15,8 @@
 local.properties
 /signing
 /app/release
+# Keystore files
+keystore.properties
+signing/
+*.jks
+*.keystore
